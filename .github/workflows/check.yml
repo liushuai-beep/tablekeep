@@ -14,7 +14,11 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run package:mac
+      - name: Archive app with macOS file modes and symlinks
+        run: |
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent ../TableKeep-build/TableKeep-darwin-arm64/TableKeep.app dist/TableKeep-macOS-arm64.zip
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: TableKeep-macOS-arm64
-          path: ../TableKeep-build/TableKeep-darwin-arm64/
+          path: dist/TableKeep-macOS-arm64.zip
