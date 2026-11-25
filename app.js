@@ -200,7 +200,9 @@
  $('quickExample').onclick=()=>applyInput(samples[0].input,samples[0].format,samples[0].id);
  $('quickAudit').onclick=async()=>{await expand();$('inspectionTitle').scrollIntoView({block:'nearest'});};
  desktop?.onView?.(updateView);desktop?.onConfig?.(updateConfig);desktop?.onCommand?.(command=>{clearTimeout(collapseTimer);if(command==='paste')readClipboard();if(command==='import')importDocument();if(command==='copy')copy();if(command==='docx')save('docx');if(command==='html')save('html');if(command==='report')save('json');if(command==='clear')clear();if(command==='help')expand().then(()=>$('aboutPanel').hidden=false);if(command==='preferences-error')toast('设置未能保存，请重试。',true);});
- desktop?.getConfig?.().then(config=>{updateConfig(config);updateView(config.mode);});
+ // The initial preferences response can arrive after a newer view event.
+ // View state comes from the initial URL and ordered host view notifications.
+ desktop?.getConfig?.().then(updateConfig);
  document.addEventListener('paste',event=>{if(view==='popup'&&!event.target.closest('textarea,[contenteditable="true"]')){const html=event.clipboardData?.getData('text/html'),text=event.clipboardData?.getData('text/plain');if(html||text){event.preventDefault();applyInput(html||text,html?'html':'auto');}}});
  document.addEventListener('keydown',event=>{if(event.key==='Escape'){$('aboutPanel').hidden=true;$('toast').hidden=true;if(view==='popup')desktop?.hide?.();}if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();copy();}});
  const previewScroll=document.querySelector('.result-scroll');

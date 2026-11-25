@@ -43,12 +43,15 @@ const assert = require('node:assert/strict');
       });
       socket.send(JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { awaitPromise: true, returnByValue: true, expression: `(async()=>{
         while(!window.TableKeepUI)await new Promise(resolve=>setTimeout(resolve,50));
+        const waitForView=async predicate=>{const deadline=Date.now()+5000;while(!predicate()){if(Date.now()>deadline)throw new Error('View did not settle');await new Promise(resolve=>setTimeout(resolve,20));}};
         const empty=TableKeepUI.getState().source===null;
         const sample=TableKeepSamples.get()[0];TableKeepUI.applyInput(sample.input,sample.format,sample.id);
         const audit=TableKeepUI.getState().audit;
         await tablekeepDesktop.setView('workbench');
+        await waitForView(()=>!document.body.classList.contains('menubar'));
         const expanded=!document.body.classList.contains('menubar');
         await tablekeepDesktop.setView('popup');
+        await waitForView(()=>document.body.classList.contains('menubar'));
         const compact=document.body.classList.contains('menubar');
         const binary=new Uint8Array(await TableKeepDOCX.make(TableKeepUI.getState().actual).arrayBuffer());
         await tablekeepDesktop.saveFile({format:'docx',data:Array.from(binary)});
@@ -61,7 +64,7 @@ const assert = require('node:assert/strict');
   } finally {
     socket?.close();
     child.kill('SIGTERM');
-    await new Promise(resolve => { if (child.exitCode !== null || child.signalCode) resolve(); else child.once('exit', resolve); });
+    await new Promise(resolve => { if (!child.pid || child.exitCode !== null || child.signalCode) resolve(); else child.once('exit', resolve); });
     await fs.rm(profile, { recursive: true, force: true });
   }
 })().catch(error => { console.error(error); process.exitCode = 1; });
