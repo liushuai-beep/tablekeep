@@ -6,33 +6,47 @@ on:
         description: Version tag matching package.json
         required: true
         default: v0.2.0
+      build_run:
+        description: Successful Check run ID with the same application source
+        required: true
 permissions:
   contents: write
+  actions: read
 jobs:
   release:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-node@v7.1.0
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run package:mac
-      - run: node tests/packaged-smoke.cjs
-      - name: Publish tested app and checksum
+          fetch-depth: 0
+      - name: Verify source and publish existing macOS artifact
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
+          BUILD_RUN: ${{ inputs.build_run }}
         run: |
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$BUILD_RUN" =~ ^[0-9]+$ ]]
           [[ "$TAG" == "v$(node -p "require('./package.json').version")" ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BUILD_RUN" > /tmp/tablekeep-build-run.json
+          BUILD_SHA=$(python3 - <<'PY'
+          import json, os
+          run=json.load(open('/tmp/tablekeep-build-run.json'))
+          assert run['conclusion']=='success' and run['name']=='Check'
+          assert run['head_repository']['full_name']==os.environ['GITHUB_REPOSITORY']
+          assert run['event'] in ('push','workflow_dispatch')
+          print(run['head_sha'])
+          PY
+          )
+          # Publish only the exact app/build inputs that passed the selected Check run.
+          git diff --exit-code "$BUILD_SHA" "$GITHUB_SHA" -- main.cjs preload.cjs app.js index.html engine.js docx.js samples.js styles.css menubar.css assets package.json package-lock.json package-mac.cjs
           mkdir -p dist
+          gh run download "$BUILD_RUN" --name TableKeep-macOS-arm64 --dir dist
+          unzip -tq dist/TableKeep-macOS-arm64.zip
           APP_ZIP="TableKeep-${TAG}-macOS-arm64.zip"
           SUMS="TableKeep-${TAG}-SHA256SUMS.txt"
-          ditto -c -k --sequesterRsrc --keepParent ../TableKeep-build/TableKeep-darwin-arm64/TableKeep.app "dist/$APP_ZIP"
-          (cd dist && shasum -a 256 "$APP_ZIP" > "$SUMS")
+          mv dist/TableKeep-macOS-arm64.zip "dist/$APP_ZIP"
+          (cd dist && sha256sum "$APP_ZIP" > "$SUMS")
           gh release view "$TAG" > /dev/null || gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "TableKeep $TAG · Menu bar preview" --notes "See README for features, installation, and preview limitations."
           gh release upload "$TAG" "dist/$APP_ZIP" "dist/$SUMS" --clobber
           gh release edit "$TAG" --draft=false --latest --target "$GITHUB_SHA"
