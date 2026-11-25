@@ -29,7 +29,9 @@ app.whenReady().then(async () => {
     assert.equal(result.numericLoss, true, 'actual number edit must trigger loss');
     assert.equal(result.safe, true, 'source HTML must be sanitized');
     assert.equal(result.mergeLoss, 0, 'row spans and empty cells must survive');
-    console.log('Passed 12 core checks (3 round trips, 3 degraded conversions, 3 DOCX containers, number edit, sanitization, merged empty cells).');
+    const fidelity = await window.webContents.executeJavaScript('runTableKeepFidelityChecks()');
+    for (const check of fidelity) assert.equal(check.passed, true, JSON.stringify(check));
+    console.log(`Passed ${12 + fidelity.length} core checks, including ${fidelity.length} targeted fidelity regressions.`);
     app.exit(0);
   } catch (error) { console.error(error); app.exit(1); }
 });

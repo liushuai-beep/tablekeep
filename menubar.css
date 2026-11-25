@@ -1,12 +1,57 @@
-.window-actions{display:flex;align-items:center;gap:14px;-webkit-app-region:no-drag}.window-actions .text-button{font-size:12px}.window-actions .icon-button{width:30px;height:30px}.titlebar-meta{margin-left:auto;margin-right:22px}.quick-input,.quick-audit,.quick-footer{display:none}
-.menubar{height:100vh;overflow:hidden;background:var(--canvas)}
-.menubar .titlebar{height:54px;padding:0 18px;border-bottom:1px solid var(--line);background:#e5eee6}.menubar .brand{font-size:17px;gap:7px}.menubar .brand-mark{width:26px;height:26px}.menubar .prototype-label,.menubar .titlebar-meta{display:none}.menubar .window-actions{margin-left:auto;gap:10px}
-.menubar main{height:calc(100vh - 54px);padding:19px 18px 12px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+/* Utility chrome shares the workbench palette; document content stays paper-white. */
+.window-actions{display:flex;align-items:center;gap:12px;-webkit-app-region:no-drag}
+.window-actions .text-button{font-size:12px}.window-actions .icon-button{width:32px;height:32px;color:var(--muted)}
+.window-actions .icon-button:hover{background:#dce8df;color:var(--pine)}
+#pinButton[aria-pressed="true"]{background:#d4e7da;color:var(--pine)}
+.titlebar-meta{margin-left:auto;margin-right:20px}.quick-input,.quick-audit,.quick-footer,.preview-metadata,.copy-shortcut{display:none}
+.paste-instruction{display:flex;align-items:center;gap:4px;margin-top:20px;font-size:12px;color:var(--muted)}
+.paste-instruction>span{margin-left:4px}kbd{font:12px/1.5 var(--font);font-variant-numeric:tabular-nums}
+.paste-instruction kbd{min-width:22px;padding:2px 4px;background:#f3f6f3;border:1px solid var(--line);border-radius:4px}
+.menubar{height:100vh;overflow:hidden;background:#f4f7f4}
+.menubar .titlebar{height:48px;padding:0 16px;background:#e8f0e9;border-bottom:1px solid #d8e3da}
+.menubar .brand{font-size:16px;gap:8px;letter-spacing:-.02em}.menubar .brand-mark{width:24px;height:24px}
+.menubar .prototype-label,.menubar .titlebar-meta,.menubar #hideButton{display:none}
+.menubar .window-actions{margin-left:auto;gap:8px}.menubar .window-actions .text-button{font-size:12px;color:#486350}
+.menubar main{height:calc(100vh - 48px);padding:16px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
 .menubar .workspace-heading,.menubar .examples,.menubar .source-panel,.menubar .inspection-panel,.menubar .app-footnote,.menubar .about-panel,.menubar .export-note,.menubar #htmlButton{display:none}
-.menubar .quick-input{display:block;flex-shrink:0}.quick-intro h1{font-size:18px;font-weight:620;letter-spacing:-.02em;margin:0 0 3px;line-height:1.5}.quick-intro p{font-size:12px;color:var(--muted);margin:0 0 13px}.quick-input>.button{width:100%;height:42px;font-size:14px}.quick-secondary{display:flex;align-items:center;justify-content:space-between;margin-top:7px;gap:8px;font-size:12px;color:var(--muted)}.quick-secondary .text-button{font-size:12px;min-height:28px;padding:0}
-.menubar .quick-audit{display:flex;align-items:center;text-align:left;gap:10px;border:0;border-radius:8px;background:var(--success-bg);padding:10px 12px;width:100%;flex-shrink:0;color:var(--success)}.menubar .quick-audit>span{flex:1;min-width:0}.quick-audit strong{display:block;font-size:13px;font-weight:600}.quick-audit span span{display:block;font-size:12px;line-height:1.6}.menubar .quick-audit.warning{background:var(--warning-bg);color:var(--warning)}.menubar .quick-audit.loss{background:var(--loss-bg);color:var(--loss)}.menubar .quick-audit.neutral{background:#e9efea;color:#526657;opacity:1;cursor:default}.quick-audit:not(:disabled):hover{filter:brightness(.97)}
-.menubar .workbench{display:flex;min-height:100px;flex:1;gap:0}.menubar .result-panel{height:auto;width:100%;min-width:0;border-radius:9px}.menubar .result-panel .panel-header{height:37px;padding:0 12px}.menubar .panel-header h2{font-size:12px;gap:6px}.menubar .panel-header h2 .icon{width:14px;height:14px}.menubar .result-panel .result-toolbar,.menubar .result-footer{display:none}.menubar .result-document{padding:15px 13px;min-width:0}.menubar .document-preview h2{font-size:16px}.menubar .document-preview p{font-size:12px}.menubar .document-preview table{min-width:540px;margin:12px 0;font-size:12px}.menubar .document-preview td p,.menubar .document-preview th p{font-size:12px}.menubar .document-preview th,.menubar .document-preview td{padding:8px}.menubar .empty-state{padding:15px;min-height:0}.menubar .empty-icon{width:33px;height:33px}.menubar .empty-state h3{font-size:14px;margin-top:12px}.menubar .empty-state p{font-size:12px}
-.menubar .export-bar{padding:0;display:block;flex-shrink:0}.menubar .export-actions{display:flex;gap:9px}.menubar .export-actions .button{flex:1;height:39px;font-size:13px;padding:0 10px;white-space:nowrap}.menubar .quick-footer{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--muted);flex-shrink:0}.quick-footer>span{margin-right:auto}.quick-footer .text-button{font-size:12px;padding:0;min-height:24px}.menubar .error-banner{margin:0;padding:8px 10px;font-size:12px;max-height:65px;overflow:auto;flex-shrink:0}.menubar .simulation-notice{font-size:12px;padding:6px 10px}.menubar .toast{bottom:50px;max-width:calc(100vw - 36px);width:max-content;padding:9px 13px;font-size:12px}
-.desktop-mac:not(.menubar) .titlebar{padding-left:25px}.desktop-mac:not(.menubar) .titlebar-meta{display:flex}
-@media(max-height:575px){.menubar main{gap:8px;padding-top:12px}.quick-intro p{display:none}.quick-intro h1{font-size:16px;margin-bottom:9px}.menubar .quick-audit{padding:7px 10px}.quick-audit span span{display:none}}
-.menubar .empty-state p{max-width:none}
+.menubar .quick-input{display:block;flex-shrink:0;order:1}.quick-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.quick-toolbar>.button{height:36px;padding:0 14px;font-size:13px;gap:8px;border-radius:7px}.quick-toolbar .icon{width:16px;height:16px}
+.keyboard-hint{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.quick-secondary{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;font-size:12px;color:var(--muted)}
+.quick-secondary .text-button{font-size:12px;min-height:24px;padding:0}
+.menubar.has-content #quickPasteButton{background:#e4eee6;color:var(--pine)}.menubar.has-content #quickPasteButton:hover{background:#d9e7dd}
+.menubar .error-banner{order:2;margin:0;padding:8px 12px;font-size:12px;max-height:64px;overflow:auto;flex-shrink:0}
+.menubar .workbench{order:3;display:flex;min-height:80px;flex:1;gap:0}.menubar .result-panel{height:auto;width:100%;min-width:0;border-radius:12px;border-color:#d4dfd6}
+.menubar .result-panel .panel-header{height:36px;padding:0 12px;border-color:#e4ebe5;gap:8px}
+.menubar .panel-header h2{font-size:12px;font-weight:550;gap:6px;color:#506858}.menubar .panel-header h2 .icon{width:14px;height:14px}
+.menubar .result-panel #resultState,.menubar .result-panel .result-toolbar,.menubar .result-footer{display:none}
+.menubar .preview-metadata{display:inline;font-size:12px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.menubar .result-document{padding:16px 12px;min-width:0;min-height:100%;font-size:13px}
+.menubar .document-preview h2{font-size:16px;font-weight:600}.menubar .document-preview p{font-size:12px}
+.menubar .document-preview table{min-width:var(--table-min-width,0px);margin:12px 0;font-size:12px}
+.menubar .document-preview td p,.menubar .document-preview th p{font-size:12px}.menubar .document-preview th,.menubar .document-preview td{padding:8px}
+.menubar .empty-state{padding:24px 12px;min-height:0}.menubar .empty-icon{width:40px;height:40px;stroke:#739580;stroke-width:1.3}
+.menubar .empty-state h3{font-size:17px;color:#355441;font-weight:550;letter-spacing:-.02em;margin:20px 0 8px}
+.menubar .empty-state p{font-size:12px;line-height:1.9;max-width:none;color:#627167}
+.menubar .quick-audit{order:4;display:flex;align-items:center;text-align:left;gap:8px;border:0;border-radius:8px;background:#e8f2eb;padding:8px 12px;width:100%;flex-shrink:0;color:var(--success)}
+.menubar:not(.has-content) .quick-audit{display:none}.menubar .quick-audit>span{flex:1;min-width:0}.quick-audit strong{display:block;font-size:13px;font-weight:550}
+.quick-audit span span{display:block;font-size:12px;line-height:1.6}.quick-audit>.icon{width:16px;height:16px}
+.menubar .quick-audit.warning{background:var(--warning-bg);color:var(--warning)}.menubar .quick-audit.loss{background:var(--loss-bg);color:var(--loss)}
+.menubar .quick-audit.neutral{background:#e9efea;color:#526657;opacity:1;cursor:default}.quick-audit:not(:disabled):hover{filter:brightness(.97)}
+.menubar .export-bar{order:5;padding:0;display:block;flex-shrink:0}.menubar:not(.has-content) .export-bar{display:none}
+.menubar .export-actions{display:flex;gap:8px}.menubar .export-actions .button{height:40px;font-size:13px;padding:0 12px;white-space:nowrap;border-radius:7px}
+.menubar #copyButton{flex:1;background:var(--pine);color:#fff;border-color:var(--pine)}.menubar #copyButton:hover:not(:disabled){background:var(--pine-hover)}
+.menubar #docxButton{flex:0 0 auto;background:#fff;color:var(--pine);border:1px solid #c7d4c9}.menubar #docxButton:hover:not(:disabled){background:#e9f1eb}
+.menubar .copy-shortcut{display:inline;margin-left:auto;font-size:12px;opacity:.9}
+.menubar .quick-footer{order:6;display:flex;align-items:center;gap:16px;min-height:24px;font-size:12px;color:var(--muted);flex-shrink:0}
+.quick-footer>span{display:flex;align-items:center;gap:4px;margin-right:auto}.quick-footer .icon{width:13px;height:13px}.quick-footer .text-button{font-size:12px;padding:0;min-height:24px}
+.menubar .simulation-notice{font-size:12px;padding:8px 12px}.menubar .toast{bottom:72px;max-width:calc(100vw - 32px);width:max-content;padding:8px 12px;font-size:12px}
+.menubar .result-scroll.dragging{outline:2px solid var(--focus);outline-offset:-4px;background:#f0f7f1}
+.desktop-mac:not(.menubar) .titlebar{padding-left:24px}.desktop-mac:not(.menubar) .titlebar-meta{display:flex}
+@media(max-height:540px){.menubar main{padding:12px 16px;gap:8px}.menubar .quick-audit span span{display:none}.menubar .empty-state{padding:16px 12px}.menubar .empty-state h3{margin-top:12px}.menubar .paste-instruction{margin-top:12px}}
+@media(max-width:390px){.menubar .brand{font-size:14px}.menubar .window-actions{gap:4px}.menubar .window-actions .text-button{font-size:12px}.keyboard-hint{font-size:12px}.menubar #docxButton{padding:0 8px}.menubar .export-actions .button{font-size:12px}}
+/* Keep the expanded editor's actions in the desktop viewport. */
+.desktop-mac:not(.menubar) .titlebar{height:52px}.desktop-mac:not(.menubar) main{padding:16px 24px 10px}
+.desktop-mac:not(.menubar) .workspace-heading{margin-bottom:12px}.desktop-mac:not(.menubar) .workspace-heading h1{font-size:22px;margin-bottom:4px}
+.desktop-mac:not(.menubar) .workspace-heading p{font-size:13px}.desktop-mac:not(.menubar) .examples{margin-bottom:12px}
+@media(min-width:1271px){.desktop-mac:not(.menubar) .panel{height:max(380px,calc(100vh - 302px))}}

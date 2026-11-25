@@ -2,11 +2,13 @@
  'use strict';
  const K=TableKeep,$=id=>document.getElementById(id),desktop=window.tablekeepDesktop;
  const state={source:null,actual:null,audit:null,assets:{},mode:'faithful',edited:false,dirty:false,valid:false,example:null,showAll:false};
- const samples=TableKeepSamples.get();let editTimer,toastTimer,pendingImageId;
+ const samples=TableKeepSamples.get();let editTimer,toastTimer,pendingImageId,collapseTimer,reading=false,pendingInspection=false;
+ let preferences={pinned:false,collapseAfterCopy:true};
  const icon=name=>`<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
  if(desktop?.platform==='darwin')document.body.classList.add('desktop-mac');
  let view=new URLSearchParams(location.search).get('view')==='popup'?'popup':'workbench';
- function updateView(next){view=next;document.body.classList.toggle('menubar',view==='popup');$('viewButton').textContent=view==='popup'?'详细工作台':'回到菜单栏';}
+ function updateView(next){view=next;clearTimeout(collapseTimer);document.body.classList.toggle('menubar',view==='popup');$('viewButton').textContent=view==='popup'?'展开工作台':'回到菜单栏';controls();}
+ function updateConfig(config){preferences=config;$('pinButton').setAttribute('aria-pressed',String(config.pinned));$('pinButton').title=config.pinned?'已固定，点击取消固定':'固定面板，点击其他位置时保持展开';setText('shortcutHint',config.shortcutRegistered?(config.shortcut.includes('Alt')?'⌘⌥V 读取':'⌘⇧V 读取'):config.shortcut?'快捷键被占用 · ⌘V 粘贴':'⌘V 粘贴');}
  const expand=async()=>{if(desktop?.setView)await desktop.setView('workbench');else updateView('workbench');};
  const setText=(id,text)=>$(id).textContent=text;
  const toast=(text,error=false)=>{clearTimeout(toastTimer);$('toast').textContent=text;$('toast').classList.toggle('error',error);$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,4200);};
@@ -20,10 +22,14 @@
   $('exampleButtons').innerHTML=samples.map((s,i)=>`<button class="example-button${state.example===s.id?' active':''}" data-example="${K.esc(s.id)}" aria-pressed="${state.example===s.id}" title="${K.esc(s.description)}">${icon(i===0?'table':i===1?'image':'code')}${K.esc(s.name)}</button>`).join('');
  }
  function controls(){
-  const available=!!state.source&&state.valid&&!state.dirty;
+  const available=!!state.source&&state.valid&&!state.dirty&&!pendingInspection;
+  document.body.classList.toggle('has-content',!!state.source);
   for(const id of ['copyButton','docxButton','htmlButton','reportButton','faithfulButton','degradedButton'])$(id).disabled=!available;
   if(available&&state.audit?.loss){$('copyButton').disabled=true;$('docxButton').disabled=true;$('htmlButton').disabled=true;}
-  $('resultPreview').setAttribute('contenteditable',String(available));
+  $('resultPreview').setAttribute('contenteditable',String(!!state.source&&state.valid&&!state.dirty&&view==='workbench'));
+  $('resultPreview').setAttribute('role',view==='popup'?'region':'textbox');
+  $('resultPreview').setAttribute('aria-label',view==='popup'?'转换预览，可在工作台编辑':'转换结果，可编辑并检查内容变化');
+  if(view==='popup')$('resultPreview').removeAttribute('aria-multiline');else $('resultPreview').setAttribute('aria-multiline','true');
   $('restoreButton').hidden=!(state.mode==='degraded'||state.edited);
   $('faithfulButton').classList.toggle('active',state.mode==='faithful');$('faithfulButton').setAttribute('aria-pressed',String(state.mode==='faithful'));
   $('degradedButton').classList.toggle('active',state.mode==='degraded');$('degradedButton').setAttribute('aria-pressed',String(state.mode==='degraded'));
@@ -33,8 +39,14 @@
   const a=state.audit,ready=available&&a;
   $('quickAudit').disabled=!ready;
   $('quickAudit').className='quick-audit '+(!ready?'neutral':a.loss?'loss':a.warning?'warning':'success');
-  setText('quickAuditTitle',!ready?'等待粘贴内容':a.loss?`发现 ${a.loss} 处内容变化`:a.warning?`${a.warning} 项需要确认`:'支持的结构已保留');
+  setText('quickAuditTitle',!ready?(pendingInspection?'正在检查变化':state.source?'等待重新转换':'等待粘贴内容'):a.loss?`发现 ${a.loss} 处内容变化`:a.warning?`${a.warning} 项需要确认`:'支持的结构已保留');
   setText('quickAuditDetail',!ready?'只在你操作时读取，不保存粘贴历史。':a.loss?'展开查看变化；恢复完整内容后再导出。':a.warning?'展开查看限制或从本机补入图片。':`${a.stats.tables} 张表格 · ${a.stats.merges} 处合并 · 查看详细检查`);
+  const tables=[];if(state.actual)K.walk(state.actual,node=>{if(node.type==='table')tables.push(node);});
+  const cols=Math.max(0,...tables.map(table=>table.colCount));
+  $('resultPreview').style.setProperty('--table-min-width',Math.min(2400,cols*92)+'px');
+  setText('previewMetadata',tables.length===1?`${tables[0].rowCount} 行 × ${cols} 列`:tables.length?`${tables.length} 张表格`:state.source?'文本片段':'');
+  setText('quickSourceLabel',state.source?`${state.source.format} · ${state.example?'演示数据':'当前内容'}`:'HTML · Markdown · TSV');
+  desktop?.updateState?.({hasContent:!!state.source&&state.valid,canExport:!!available&&!a?.loss}).catch(()=>{});
  }
  function neutral(title,subtitle){
   $('auditSummary').className='audit-summary neutral';setText('auditTitle',title);setText('auditSubtitle',subtitle);
@@ -42,12 +54,13 @@
   setText('exportTitle',title);setText('exportHint',subtitle);controls();
  }
  function applyInput(input,format='auto',example=null){
+  clearTimeout(collapseTimer);clearTimeout(editTimer);clearTimeout(toastTimer);$('toast').hidden=true;pendingInspection=false;setText('copyLabel','复制富文本');
   error('');state.example=example;state.showAll=false;
   try{
    const doc=K.parse(input,{format});state.source=doc;state.assets={};state.mode='faithful';state.edited=false;state.dirty=false;state.valid=true;
    $('sourceEditor').value=input;setText('inputFormat',doc.format);
    $('sourcePreview').innerHTML=K.render(doc);
-   renderResult();examples();
+   renderResult();examples();if(view==='popup')$('copyButton').focus({preventScroll:true});
   }catch(err){state.valid=false;error(err.message);neutral('输入需要调整','请检查输入后重新转换。');examples();}
  }
  function renderResult(){
@@ -56,6 +69,7 @@
   $('resultPreview').innerHTML=K.render(doc,{assets:state.assets});state.edited=false;inspectDOM();
  }
  function inspectDOM(){
+  pendingInspection=false;
   if(!state.source||!state.valid)return;
   try{
    const actual=K.parse($('resultPreview').innerHTML,{format:'html',trustIds:true});
@@ -88,7 +102,8 @@
   else toast('这是跨多个位置的变化，请核对结果或恢复保真转换。');
  }
  async function readClipboard(){
-  const button=$('pasteButton');button.disabled=true;
+  if(reading)return;reading=true;clearTimeout(collapseTimer);
+  const button=$('pasteButton');button.disabled=true;$('quickPasteButton').disabled=true;$('quickPasteButton').setAttribute('aria-busy','true');$('quickPasteButton').querySelector('span').textContent='正在读取…';
   try{
    let data;
    if(desktop)data=await desktop.readClipboard();
@@ -99,7 +114,7 @@
    if(!data.html&&!data.text){toast('剪贴板里没有可读取的表格或文本。',true);return;}
    applyInput(data.html||data.text,data.html?'html':'auto');toast('已读取剪贴板并完成检查。');
   }catch(err){await expand();setSourceTab(true);$('sourceEditor').focus();toast('未能读取剪贴板，可以直接粘贴到输入框。',true);}
-  finally{button.disabled=false;}
+  finally{reading=false;button.disabled=false;$('quickPasteButton').disabled=false;$('quickPasteButton').removeAttribute('aria-busy');$('quickPasteButton').querySelector('span').textContent='读取剪贴板';}
  }
  async function importDocument(){
   try{
@@ -108,8 +123,8 @@
   }catch(err){toast(err.message,true);}
  }
  async function readFile(file){
-  if(!file)return;if(file.size>720000){toast('文件较大，请拆分为较小片段。',true);return;}
-  applyInput(await file.text(),/\.html?$/i.test(file.name)?'html':'markdown');toast('已导入 '+file.name);
+  if(!file)return;if(file.size>25000000){toast('文件超过 25 MB，请拆分内容。',true);return;}
+  applyInput(await file.text(),/\.html?$/i.test(file.name)?'html':/\.(md|markdown)$/i.test(file.name)?'markdown':'auto');toast('已导入 '+file.name);
  }
  async function imageFile(file){
   if(!file||!pendingImageId)return;
@@ -125,29 +140,35 @@
   catch(err){toast(err.message,true);}
  }
  function clear(){
+  clearTimeout(editTimer);clearTimeout(collapseTimer);clearTimeout(toastTimer);$('toast').hidden=true;pendingInspection=false;setText('copyLabel','复制富文本');
   state.source=null;state.actual=null;state.audit=null;state.example=null;state.dirty=false;state.valid=false;state.assets={};state.mode='faithful';state.edited=false;
   $('sourceEditor').value='';$('sourcePreview').innerHTML='<div class="empty-state"><h3>放入你的内容</h3><p>读取剪贴板，或拖入一份 HTML / Markdown 文件。</p></div>';$('resultPreview').innerHTML='';$('checkList').innerHTML='';$('inputStats').innerHTML='';$('issuesSection').hidden=true;error('');neutral('等待输入内容','选择示例或导入你自己的内容。');examples();
  }
  async function save(format){
+  if(pendingInspection){clearTimeout(editTimer);inspectDOM();}
   if(!state.source||!state.actual||state.dirty||!state.valid)return;
+  if(state.audit?.loss&&format!=='json'){toast('检测到内容变化，请先在工作台恢复完整结果。',true);return;}
   const button=$(format==='docx'?'docxButton':format==='html'?'htmlButton':'reportButton');button.disabled=true;
   try{
    let blob;
    if(format==='docx')blob=TableKeepDOCX.make(state.actual,{assets:state.assets});
    else if(format==='html')blob=new Blob([K.exportedHTML(K.render(state.actual,{assets:state.assets}))],{type:'text/html;charset=utf-8'});
-   else blob=new Blob([JSON.stringify({prototype:'TableKeep 0.2',mode:state.mode,edited:state.edited,scope:'对已识别结构进行检查；不代表 Word/WPS 最终显示验证。',summary:{loss:state.audit.loss,warning:state.audit.warning},stats:state.audit.stats,checks:state.audit.checks,issues:state.audit.issues},null,2)],{type:'application/json;charset=utf-8'});
+   else blob=new Blob([JSON.stringify({prototype:'TableKeep 0.3',mode:state.mode,edited:state.edited,scope:'对已识别结构进行检查；不代表 Word/WPS 最终显示验证。',summary:{loss:state.audit.loss,warning:state.audit.warning},stats:state.audit.stats,checks:state.audit.checks,issues:state.audit.issues},null,2)],{type:'application/json;charset=utf-8'});
    if(desktop){const result=await desktop.saveFile({format,data:format==='docx'?Array.from(new Uint8Array(await blob.arrayBuffer())):await blob.text()});if(result)toast('已导出 '+result.name);}
    else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='TableKeep-result.'+format;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('已导出文件。');}
   }catch(err){toast('导出未完成：'+err.message,true);}finally{controls();}
  }
  async function copy(){
-  if(!state.actual||state.audit?.loss)return;
+  if(pendingInspection){clearTimeout(editTimer);inspectDOM();}
+  if(!state.actual||!state.valid||state.dirty||state.audit?.loss)return;
   try{
    const html=K.exportedHTML(K.render(state.actual,{assets:state.assets})),text=K.blockText(state.actual.blocks);
-   if(desktop)await desktop.copyResult({html,text});
+   let result;if(desktop)result=await desktop.copyResult({html,text});
    else if(navigator.clipboard?.write)await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([text],{type:'text/plain'})})]);
    else throw new Error('请使用文件导出。');
-   toast(state.audit.warning?'已复制富文本；待确认项仍会保留。':'已复制富文本，可以粘贴到办公软件。');
+   if(view!=='popup')toast(state.audit.warning?'已复制富文本；待确认项仍会保留。':'已复制富文本，可以粘贴到办公软件。');
+   setText('copyLabel','已复制');clearTimeout(collapseTimer);
+   collapseTimer=setTimeout(()=>{if(result?.collapse)desktop?.hide?.();setText('copyLabel','复制富文本');},result?.collapse?280:1600);
   }catch(err){toast('未能复制，请改用 DOCX 或 HTML 导出。',true);}
  }
  $('exampleButtons').addEventListener('click',event=>{const button=event.target.closest('[data-example]');if(button){const s=samples.find(s=>s.id===button.dataset.example);applyInput(s.input,s.format,s.id);setSourceTab(false);}});
@@ -161,7 +182,7 @@
  $('faithfulButton').onclick=()=>{state.mode='faithful';state.showAll=false;renderResult();};
  $('degradedButton').onclick=()=>{state.mode='degraded';state.showAll=false;renderResult();};
  $('restoreButton').onclick=()=>{state.mode='faithful';state.showAll=false;renderResult();toast('已从输入原文恢复保真结果。');};
- $('resultPreview').addEventListener('input',()=>{state.edited=true;clearTimeout(editTimer);editTimer=setTimeout(inspectDOM,180);});
+ $('resultPreview').addEventListener('input',()=>{state.edited=true;pendingInspection=true;clearTimeout(editTimer);controls();editTimer=setTimeout(inspectDOM,180);});
  $('resultPreview').addEventListener('paste',event=>{event.preventDefault();document.execCommand('insertText',false,event.clipboardData?.getData('text/plain')||'');});
  $('resultPreview').addEventListener('click',event=>{if(event.target.closest('a')){event.preventDefault();toast('链接地址已保留；预览中不打开外部网页。');}const cell=event.target.closest('td,th');if(cell){$('resultPreview').querySelectorAll('.selected-cell').forEach(n=>n.classList.remove('selected-cell'));cell.classList.add('selected-cell');}});
  $('issueList').addEventListener('click',event=>{const img=event.target.closest('[data-image]');if(img){addImage(img.dataset.image);return;}const button=event.target.closest('[data-issue]');if(button)focusIssue(state.audit.issues.find(i=>i.id===button.dataset.issue));if(event.target.closest('#showAllIssues')){state.showAll=true;renderInspection();}});
@@ -173,13 +194,19 @@
  $('sourceDrop').addEventListener('drop',event=>{event.preventDefault();$('sourceDrop').classList.remove('dragging');const file=event.dataTransfer?.files[0];if(file)readFile(file);else{const data=event.dataTransfer?.getData('text/html')||event.dataTransfer?.getData('text/plain');if(data)applyInput(data);}});
  $('viewButton').onclick=()=>desktop?.setView?desktop.setView(view==='popup'?'workbench':'popup'):updateView(view==='popup'?'workbench':'popup');
  $('hideButton').onclick=()=>desktop?.hide?.();
+ $('pinButton').onclick=async()=>{try{updateConfig(await desktop.updatePreferences({pinned:!preferences.pinned}));}catch(err){toast('设置未能保存，请重试。',true);}};
+ $('moreButton').onclick=()=>desktop?.showMenu?.();
  $('quickPasteButton').onclick=readClipboard;$('quickImport').onclick=importDocument;$('quickClear').onclick=clear;
  $('quickExample').onclick=()=>applyInput(samples[0].input,samples[0].format,samples[0].id);
  $('quickAudit').onclick=async()=>{await expand();$('inspectionTitle').scrollIntoView({block:'nearest'});};
- desktop?.onView?.(updateView);desktop?.onCommand?.(command=>{if(command==='paste')readClipboard();});
- desktop?.getConfig?.().then(config=>{updateView(config.mode);if(config.shortcutRegistered)setText('shortcutHint',desktop.platform==='darwin'?'全局快捷键 ⌘⇧V':'全局快捷键 Ctrl+Shift+V');});
+ desktop?.onView?.(updateView);desktop?.onConfig?.(updateConfig);desktop?.onCommand?.(command=>{clearTimeout(collapseTimer);if(command==='paste')readClipboard();if(command==='import')importDocument();if(command==='copy')copy();if(command==='docx')save('docx');if(command==='html')save('html');if(command==='report')save('json');if(command==='clear')clear();if(command==='help')expand().then(()=>$('aboutPanel').hidden=false);if(command==='preferences-error')toast('设置未能保存，请重试。',true);});
+ desktop?.getConfig?.().then(config=>{updateConfig(config);updateView(config.mode);});
  document.addEventListener('paste',event=>{if(view==='popup'&&!event.target.closest('textarea,[contenteditable="true"]')){const html=event.clipboardData?.getData('text/html'),text=event.clipboardData?.getData('text/plain');if(html||text){event.preventDefault();applyInput(html||text,html?'html':'auto');}}});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'){$('aboutPanel').hidden=true;$('toast').hidden=true;if(view==='popup')desktop?.hide?.();}});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'){$('aboutPanel').hidden=true;$('toast').hidden=true;if(view==='popup')desktop?.hide?.();}if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();copy();}});
+ const previewScroll=document.querySelector('.result-scroll');
+ for(const type of ['dragenter','dragover'])previewScroll.addEventListener(type,event=>{if(view==='popup'){event.preventDefault();previewScroll.classList.add('dragging');}});
+ previewScroll.addEventListener('dragleave',()=>previewScroll.classList.remove('dragging'));
+ previewScroll.addEventListener('drop',event=>{if(view!=='popup')return;event.preventDefault();previewScroll.classList.remove('dragging');const file=event.dataTransfer?.files[0];if(file)readFile(file);else{const html=event.dataTransfer?.getData('text/html'),text=event.dataTransfer?.getData('text/plain');if(html||text)applyInput(html||text,html?'html':'auto');}});
  window.TableKeepUI={applyInput,getState:()=>({source:K.clone(state.source),actual:K.clone(state.actual),audit:K.clone(state.audit),assets:{...state.assets},mode:state.mode,edited:state.edited,dirty:state.dirty,valid:state.valid}),attachImage};
  updateView(view);clear();
 })();

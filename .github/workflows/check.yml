@@ -13,6 +13,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run test:ui
+      - run: npm run test:native
       - run: npm run package:mac
       - run: node tests/packaged-smoke.cjs
       - name: Archive app with macOS file modes and symlinks

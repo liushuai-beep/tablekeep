@@ -7,6 +7,20 @@
   const embeddedImage = value => /^data:image\/(png|jpeg|gif);base64,[a-z0-9+/=\s]+$/i.test(value || '');
   const imageType = value => embeddedImage(value) ? 'embedded' : /^data:image\/svg/i.test(value || '') ? 'svg' : 'external';
   const clone = value => JSON.parse(JSON.stringify(value));
+  function imageDimensions(source) {
+    if(!embeddedImage(source))return null;
+    try {
+      const bytes=Uint8Array.from(atob(source.slice(source.indexOf(',')+1).replace(/\s/g,'')),char=>char.charCodeAt(0)),view=new DataView(bytes.buffer);
+      let width,height;
+      if(bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes.length>=24){width=view.getUint32(16);height=view.getUint32(20);}
+      else if(bytes[0]===71&&bytes[1]===73&&bytes[2]===70&&bytes.length>=10){width=view.getUint16(6,true);height=view.getUint16(8,true);}
+      else if(bytes[0]===255&&bytes[1]===216){
+        let offset=2;
+        while(offset+8<bytes.length){if(bytes[offset++]!==255)continue;let marker=bytes[offset++];while(marker===255)marker=bytes[offset++];if(marker===217||marker===218)break;if(marker===216||marker===1||(marker>=208&&marker<=215))continue;const length=view.getUint16(offset);if(length<2)break;if([192,193,194,195,197,198,199,201,202,203,205,206,207].includes(marker)){height=view.getUint16(offset+3);width=view.getUint16(offset+5);break;}offset+=length;}
+      }
+      return width>0&&height>0?{width,height}:null;
+    }catch{return null;}
+  }
 
   function markdownToHTML(input) {
     const inline = text => {
@@ -24,9 +38,10 @@
       if (text.startsWith('|')) text = text.slice(1);
       if (text.endsWith('|') && !text.endsWith('\\|')) text = text.slice(0, -1);
       const cells = []; let current = '', code = false, escaped = false;
-      for (const c of text) {
+      for (let index = 0; index < text.length; index++) {
+        const c = text[index];
         if (escaped) { current += c; escaped = false; continue; }
-        if (c === '\\') { escaped = true; continue; }
+        if (c === '\\' && ['|','\\'].includes(text[index + 1])) { escaped = true; continue; }
         if (c === '`') code = !code;
         if (c === '|' && !code) { cells.push(current.trim()); current = ''; } else current += c;
       }
@@ -50,10 +65,10 @@
         output.push(chunk.join('\n')); continue;
       }
       if (i + 1 < lines.length && line.includes('|') && /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(lines[i + 1])) {
-        const header = splitRow(line); i += 2;
+        const header = splitRow(line), alignments = splitRow(lines[i + 1]).map(value => value.endsWith(':') ? (value.startsWith(':') ? 'center' : 'right') : 'left'); i += 2;
         const rows = [];
         while (i < lines.length && lines[i].includes('|') && lines[i].trim()) rows.push(splitRow(lines[i++]));
-        output.push('<table><thead><tr>' + header.map(x => `<th>${inline(x)}</th>`).join('') + '</tr></thead><tbody>' + rows.map(row => '<tr>' + row.map(x => `<td>${inline(x)}</td>`).join('') + '</tr>').join('') + '</tbody></table>');
+        output.push('<table><thead><tr>' + header.map((x,c) => `<th style="text-align:${alignments[c] || 'left'}">${inline(x)}</th>`).join('') + '</tr></thead><tbody>' + rows.map(row => '<tr>' + row.map((x,c) => `<td style="text-align:${alignments[c] || 'left'}">${inline(x)}</td>`).join('') + '</tr>').join('') + '</tbody></table>');
         continue;
       }
       const heading = line.match(/^(#{1,6})\s+(.*)$/);
@@ -79,7 +94,9 @@
   }
 
   function parse(input, options = {}) {
-    if (String(input).length > MAX_TEXT) throw new Error('内容较长。原型目前最多处理 18 万字符，请分段导入。');
+    input = String(input ?? '');
+    if (input.length > 25000000) throw new Error('含图片的内容超过 25 MB，请拆分后导入。');
+    if (input.replace(/data:image\/(?:png|jpeg|gif);base64,[a-z0-9+/=\s]+/gi, '[embedded image]').length > MAX_TEXT) throw new Error('内容较长。原型目前最多处理 18 万字符，请分段导入。');
     let seq = 0;
     const used = new Set(), warnings = [];
     const id = element => {
@@ -89,7 +106,10 @@
       used.add(value); return value;
     };
     const isHTML = options.format === 'html' || (options.format !== 'markdown' && /<(table|p|div|section|h[1-6]|ul|ol|pre|img|svg)\b/i.test(input));
-    const source = new DOMParser().parseFromString(isHTML ? input : markdownToHTML(input), 'text/html');
+    const textRows = !isHTML && options.format !== 'markdown' ? input.replace(/\r\n?/g,'\n').replace(/\n+$/,'').split('\n') : [];
+    const isTSV = textRows.length > 1 && textRows.every(row => row.includes('\t'));
+    const textHTML = isTSV ? '<table><tbody>' + textRows.map(row => '<tr>' + row.split('\t').map(value => '<td>' + esc(value) + '</td>').join('') + '</tr>').join('') + '</tbody></table>' : '';
+    const source = new DOMParser().parseFromString(isHTML ? input : isTSV ? textHTML : markdownToHTML(input), 'text/html');
     let count = 0;
     const runNodes = (nodes, inherited = {}) => {
       const runs = [];
@@ -105,7 +125,8 @@
         if (tag === 'br') { runs.push({ type: 'break' }); continue; }
         if (tag === 'img') {
           const src = node.getAttribute('src') || node.getAttribute('data-source-src') || '';
-          runs.push({ type: 'image', id: id(node), src, alt: node.getAttribute('alt') || '', width: Math.min(Number(node.getAttribute('width')) || 180, 620), height: Math.min(Number(node.getAttribute('height')) || 70, 460) });
+          const size=imageDimensions(src),width=Number(node.getAttribute('width'))||parseFloat(node.style.width)||size?.width||180,height=Number(node.getAttribute('height'))||parseFloat(node.style.height)||(size?width*size.height/size.width:70),scale=Math.min(1,620/width,460/height);
+          runs.push({ type: 'image', id: id(node), src, alt: node.getAttribute('alt') || '', width: Math.max(1,Math.round(width*scale)), height: Math.max(1,Math.round(height*scale)) });
           continue;
         }
         if (tag === 'svg') {
@@ -168,9 +189,10 @@
         occupied[r] ||= []; let col = 0; const cells = [];
         for (const cell of Array.from(row.cells)) {
           while (occupied[r][col]) col++;
-          let rs = cell.getAttribute('rowspan') === '0' ? rowElements.length - r : Math.max(1, Number(cell.getAttribute('rowspan')) || 1);
-          let cs = Math.max(1, Number(cell.getAttribute('colspan')) || 1);
-          rs = Math.min(rs, rowElements.length - r); cs = Math.min(cs, MAX_COLS);
+          const group = row.parentElement;
+          const remaining = ['THEAD','TBODY','TFOOT'].includes(group.tagName) ? group.rows.length - row.sectionRowIndex : rowElements.length - r;
+          const rs = cell.rowSpan === 0 ? remaining : Math.min(cell.rowSpan, remaining);
+          const cs = cell.colSpan;
           if (col + cs > MAX_COLS) throw new Error('原型每张表格最多支持 40 列，请分段导入。');
           for (let y = r; y < r + rs; y++) {
             occupied[y] ||= [];
@@ -190,7 +212,7 @@
     };
     const blocks = parseBlocks(source.body);
     if (!blocks.length) throw new Error('没有识别到可转换的内容。请粘贴表格、HTML 或 Markdown。');
-    return {blocks,warnings,format:isHTML?'HTML 富文本':'Markdown / 文本'};
+    return {blocks,warnings,format:isHTML?'HTML 富文本':isTSV?'TSV 表格':'Markdown / 文本'};
   }
 
   function walk(doc, fn) {
@@ -216,7 +238,8 @@
       if (run.type === 'break') return '<br>';
       if (run.type === 'image') {
         const source = assets[run.id] || run.src;
-        if (embeddedImage(source)) return `<img${attr(run)} src="${esc(source)}" alt="${esc(run.alt)}" width="${run.width}" height="${run.height}" style="max-width:100%;object-fit:contain">`;
+        const size=assets[run.id]&&imageDimensions(source),height=size?Math.round(run.width*size.height/size.width):run.height;
+        if (embeddedImage(source)) return `<img${attr(run)} src="${esc(source)}" alt="${esc(run.alt)}" width="${run.width}" height="${height}" style="max-width:100%;object-fit:contain">`;
         return `<img${attr(run)} data-source-src="${esc(source)}" alt="${esc(run.alt || '待补入图片')}" width="${run.width}" height="${run.height}" class="unresolved-image">`;
       }
       if (run.type === 'math') return `<span${attr(run)} class="math-source" data-math-source="${esc(run.raw)}" title="公式原文；原型暂未转换原生公式">${esc(run.raw)}</span>`;
@@ -291,12 +314,23 @@
         if(!out||out.raw!==node.raw){formulaMissing++;add({severity:'loss',kind:'math-loss',nodeId:key,title:'公式原文缺失或改变',detail:'无法找到内容一致的原始公式。',repair:'restore'});}
         add({severity:'warning',kind:'math',nodeId:key,title:'公式保留为原文',detail:'此原型还未生成 Word 原生可编辑公式；导出时将明确保留 LaTeX/MathML 原文。'});
       }
-      if(node.type==='list'&&node.ordered && out && JSON.stringify(node.items.map(x=>x.value))!==JSON.stringify(out.items.map(x=>x.value)))add({severity:'loss',kind:'numbering',nodeId:key,title:'列表编号发生变化',detail:'原始编号与结果中的编号不同。',repair:'restore'});
+      if(node.type==='list'&&node.ordered && out?.type==='list' && JSON.stringify(node.items.map(x=>x.value))!==JSON.stringify(out.items.map(x=>x.value)))add({severity:'loss',kind:'numbering',nodeId:key,title:'列表编号发生变化',detail:'原始编号与结果中的编号不同。',repair:'restore'});
+      if(node.type==='list') {
+        if(!out || out.type!=='list' || node.ordered!==out.ordered || blockText([node])!==blockText([out])) {
+          textChanged++;add({severity:'loss',kind:'list-text',nodeId:key,title:'列表内容或类型发生变化',detail:'列表的文字、条目或有序/无序类型与输入不同。',repair:'restore'});
+        } else if(formatting([node])!==formatting([out]))add({severity:'loss',kind:'formatting',nodeId:key,title:'列表的强调或链接改变',detail:'列表中的文字样式或链接地址与输入不同。',repair:'restore'});
+      }
+    }
+    for(const [key,node] of actualNodes){
+      if(!expected.has(key) && ['table','paragraph','heading','list','code','image','math'].includes(node.type) && (['table','image','math'].includes(node.type) || blockText([node]).trim())) {
+        textChanged++;add({severity:'loss',kind:'added-content',nodeId:key,title:'结果中增加了内容',detail:'这一段内容在输入中不存在，请核对后恢复。',repair:'restore'});
+      }
     }
     for(const block of original.blocks){
       if(['paragraph','heading'].includes(block.type)){
         const target=actualNodes.get(block.id);
         if(!target||runText(block.runs)!==runText(target.runs||[])){textChanged++;add({severity:'loss',kind:'body-text',nodeId:block.id,title:'正文文字发生变化',detail:'段落或标题与输入原文不一致。',repair:'restore'});}
+        else if(formatting([block])!==formatting([target]))add({severity:'loss',kind:'formatting',nodeId:block.id,title:'正文的强调或链接改变',detail:'段落中的支持样式或链接地址与输入不同。',repair:'restore'});
       }
     }
     // Inline code is compared separately from ordinary formatting.
@@ -323,5 +357,5 @@
     for(const [tag,style] of Object.entries(styles))parsed.querySelectorAll(tag).forEach(node=>node.setAttribute('style',style+';'+(node.getAttribute('style')||'')));
     return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>TableKeep 转换结果</title></head><body>'+parsed.body.innerHTML+'</body></html>';
   }
-  root.TableKeep={parse,render,stats,inspect,degraded,walk,blockText,runText,clone,esc,embeddedImage,imageType,exportedHTML};
+  root.TableKeep={parse,render,stats,inspect,degraded,walk,blockText,runText,clone,esc,embeddedImage,imageType,imageDimensions,exportedHTML};
 })(globalThis);

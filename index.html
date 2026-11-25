@@ -25,20 +25,21 @@
   <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-5-16-2 20"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
   <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 0 6M4 4v6h6"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="m15 3 6 6-4 1-4 5-4-4 5-4 1-4ZM9 11l-3 3 4 4 3-3M8 16l-5 5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
  </defs></svg>
  <header class="titlebar">
   <div class="brand"><svg class="brand-mark" viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="2" width="26" height="26" rx="7" fill="currentColor"/><path d="M8 9h14M8 15h14M15 9v13M8 9v13h14V9" fill="none" stroke="#fff" stroke-width="1.6"/><path d="m17 19 2 2 4-5" fill="none" stroke="#9ed9b8" stroke-width="2"/></svg><span>TableKeep</span><span class="prototype-label">原型</span></div>
   <div class="titlebar-meta"><svg class="icon"><use href="#i-shield"/></svg><span>转换在本机完成</span></div>
-  <div class="window-actions"><button id="viewButton" class="text-button">详细工作台</button><button id="hideButton" class="icon-button" aria-label="收起到菜单栏"><svg class="icon"><use href="#i-close"/></svg></button></div>
+  <div class="window-actions"><button id="viewButton" class="text-button" title="展开详细工作台 · ⌘D">展开工作台</button><button id="pinButton" class="icon-button" aria-label="固定面板" aria-pressed="false" title="固定面板，点击其他位置时保持展开"><svg class="icon"><use href="#i-pin"/></svg></button><button id="moreButton" class="icon-button" aria-label="更多操作与设置" title="更多操作与设置 · ⌘,"><svg class="icon"><use href="#i-more"/></svg></button><button id="hideButton" class="icon-button" aria-label="收起到菜单栏"><svg class="icon"><use href="#i-close"/></svg></button></div>
  </header>
  <main>
   <section class="quick-input" aria-label="菜单栏快速转换">
-   <div class="quick-intro"><h1>复制好了？完整地带过去。</h1><p>保留合并表格，检查转换中的变化。</p></div>
-   <button id="quickPasteButton" class="button button-primary"><svg class="icon"><use href="#i-paste"/></svg>读取剪贴板并检查</button>
-   <div class="quick-secondary"><span id="shortcutHint">也可以直接按 ⌘V 粘贴</span><button id="quickExample" class="text-button">试用复杂表格示例</button></div>
+   <div class="quick-toolbar"><button id="quickPasteButton" class="button button-primary"><svg class="icon"><use href="#i-paste"/></svg><span>读取剪贴板</span></button><span id="shortcutHint" class="keyboard-hint">⌘V 粘贴</span></div>
+   <div class="quick-secondary"><span id="quickSourceLabel">HTML · Markdown · TSV</span><button id="quickExample" class="text-button">试用示例</button></div>
   </section>
   <section class="workspace-heading">
-   <div><h1>把表格完整地带过去。</h1><p>先核对合并结构、单元格内容和图片，再复制或导出。</p></div>
+   <div><h1>表格工作台</h1><p>核对输入与结果，查看转换中的变化。</p></div>
    <button id="aboutButton" class="button button-quiet"><svg class="icon"><use href="#i-info"/></svg>原型说明</button>
   </section>
   <section id="aboutPanel" class="about-panel" hidden>
@@ -63,10 +64,10 @@
     <div class="source-footer"><p id="inputHint">支持 HTML / Markdown / 文本，也可拖入文件。</p><div class="source-bottom"><button id="clearButton" class="text-button">清空</button><button id="convertButton" class="button button-primary">转换并检查</button></div></div>
    </section>
    <section class="panel result-panel" aria-labelledby="resultTitle">
-    <header class="panel-header"><h2 id="resultTitle"><svg class="icon"><use href="#i-table"/></svg>转换结果</h2><div id="resultState" class="state-label success"><svg class="icon"><use href="#i-check"/></svg>结构已保留</div></header>
+    <header class="panel-header"><h2 id="resultTitle"><svg class="icon"><use href="#i-table"/></svg>转换预览</h2><span id="previewMetadata" class="preview-metadata"></span><div id="resultState" class="state-label success"><svg class="icon"><use href="#i-check"/></svg>结构已保留</div></header>
     <div class="result-toolbar"><div class="segmented" role="group" aria-label="转换方式"><button id="faithfulButton" class="segment active" aria-pressed="true">保真转换</button><button id="degradedButton" class="segment" aria-pressed="false">简化中转 · 模拟</button></div><button id="restoreButton" class="text-button" hidden><svg class="icon"><use href="#i-restore"/></svg>恢复保真结果</button></div>
     <div id="simulationNotice" class="simulation-notice" hidden><svg class="icon"><use href="#i-warning"/></svg><span>正在模拟把复杂内容转成简单表格的损失，不是其他产品的实测。</span></div>
-    <div class="result-scroll"><div id="resultPreview" class="document-preview result-document" contenteditable="true" role="textbox" aria-label="转换结果，可试改文字或数字以验证检查" aria-multiline="true" spellcheck="false"></div><div id="emptyResult" class="empty-state" hidden><svg class="empty-icon"><use href="#i-table"/></svg><h3>等一份值得保留的表格</h3><p>在原来的应用里复制内容，回来粘贴；<br>也可以先试用复杂表格示例。</p></div></div>
+    <div class="result-scroll"><div id="resultPreview" class="document-preview result-document" contenteditable="true" role="textbox" aria-label="转换结果，可试改文字或数字以验证检查" aria-multiline="true" spellcheck="false"></div><div id="emptyResult" class="empty-state" hidden><svg class="empty-icon"><use href="#i-paste"/></svg><h3>粘贴一份表格</h3><p>从网页、AI 对话或表格软件复制，<br>在这里保留结构、核对内容。</p><span class="paste-instruction"><kbd>⌘</kbd><kbd>V</kbd><span>粘贴，或拖入文件</span></span></div></div>
     <div class="result-footer"><span><svg class="icon"><use href="#i-code"/></svg><span id="editHint">可以试改一个数字，查看检查如何响应。</span></span><span id="editedFlag" hidden>结果已编辑</span></div>
    </section>
    <aside class="panel inspection-panel" aria-labelledby="inspectionTitle">
@@ -81,12 +82,12 @@
     <div class="inspection-footer"><button id="reportButton" class="text-button"><svg class="icon"><use href="#i-export"/></svg>导出检查报告</button></div>
    </aside>
   </section>
-  <footer class="export-bar"><div class="export-note"><svg class="icon"><use href="#i-shield"/></svg><div><strong id="exportTitle">内容已准备好</strong><span id="exportHint">合并结构与嵌入图片将写入导出文件。</span></div></div><div class="export-actions"><button id="htmlButton" class="button button-outline">导出 HTML</button><button id="copyButton" class="button button-outline"><svg class="icon"><use href="#i-copy"/></svg>复制富文本</button><button id="docxButton" class="button button-primary"><svg class="icon"><use href="#i-export"/></svg>导出 DOCX</button></div></footer>
-  <p class="app-footnote">TableKeep 0.2 · 菜单栏预览版<span>不自动联网 · 不上传内容</span></p>
-  <div class="quick-footer"><span>本机处理 · 不自动联网</span><button id="quickClear" class="text-button">清空内容</button><button id="quickImport" class="text-button">导入文件</button></div>
+  <footer class="export-bar"><div class="export-note"><svg class="icon"><use href="#i-shield"/></svg><div><strong id="exportTitle">内容已准备好</strong><span id="exportHint">合并结构与嵌入图片将写入导出文件。</span></div></div><div class="export-actions"><button id="htmlButton" class="button button-outline">导出 HTML</button><button id="copyButton" class="button button-outline"><svg class="icon"><use href="#i-copy"/></svg><span id="copyLabel">复制富文本</span><kbd class="copy-shortcut">⌘↵</kbd></button><button id="docxButton" class="button button-primary"><svg class="icon"><use href="#i-export"/></svg>导出 DOCX</button></div></footer>
+  <p class="app-footnote">TableKeep 0.3 · 菜单栏预览版<span>不自动联网 · 不上传内容</span></p>
+  <div class="quick-footer"><span><svg class="icon"><use href="#i-shield"/></svg>仅在本机处理</span><button id="quickClear" class="text-button">清空</button><button id="quickImport" class="text-button">导入文件</button></div>
  </main>
  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
- <input id="fileInput" type="file" accept=".html,.htm,.md,.markdown,.txt" hidden>
+ <input id="fileInput" type="file" accept=".html,.htm,.md,.markdown,.txt,.tsv" hidden>
  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/gif" hidden>
 </body>
 </html>

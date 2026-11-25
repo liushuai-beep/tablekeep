@@ -1,84 +1,302 @@
 {
-  "packaged": true,
-  "checks": [
+  "version": "0.3.0",
+  "platform": "macOS arm64",
+  "coreChecks": 25,
+  "rendererChecks": [
     {
-      "name": "启动为空状态，未自动读取剪贴板",
+      "name": "空状态隐藏无可用内容的导出区",
       "passed": true
     },
     {
-      "name": "真实原生菜单栏图标已创建",
+      "name": "小面板只读，完整合并表格预览",
       "passed": true
     },
     {
-      "name": "菜单栏点击展开与收起",
+      "name": "460×600 操作区无整页溢出",
       "passed": true
     },
     {
-      "name": "小面板复杂合并表格转换与检查",
+      "name": "固定按钮状态与设置同步",
       "passed": true
     },
     {
-      "name": "小面板无页面横向或纵向溢出",
+      "name": "展开后可编辑且保留内容",
       "passed": true
     },
     {
-      "name": "展开详细工作台保留同一份内容",
+      "name": "编辑后立即按复制快捷键不会绕过检查",
       "passed": true
     },
     {
-      "name": "真实金额编辑触发检查并阻止损失导出",
+      "name": "快捷键/原生菜单不会绕过损失导出限制",
       "passed": true
     },
     {
-      "name": "详细检查点击定位",
+      "name": "TSV 读取入口与来源状态",
       "passed": true
     },
     {
-      "name": "回到小面板保留损失状态",
+      "name": "复制数据保留表格及前导零（隔离剪贴板）",
       "passed": true
     },
     {
-      "name": "小面板原生 DOCX 导出",
+      "name": "短面板布局",
       "passed": true
     },
     {
-      "name": "显式读取入口（隔离剪贴板测试，不修改系统剪贴板）",
-      "passed": true
-    },
-    {
-      "name": "全局快捷键回调打开面板并读取",
-      "passed": true
-    },
-    {
-      "name": "原生文件对话框失焦不误收起面板",
-      "passed": true
-    },
-    {
-      "name": "Escape 收起",
-      "passed": true
-    },
-    {
-      "name": "失焦收起",
-      "passed": true
-    },
-    {
-      "name": "关闭窗口后仍常驻菜单栏",
-      "passed": true
-    },
-    {
-      "name": "短屏高度适配",
-      "passed": true
-    },
-    {
-      "name": "无渲染异常",
+      "name": "错误状态仍可恢复输入",
       "passed": true
     }
   ],
-  "errors": [],
-  "version": "0.2.0",
-  "coreChecks": 12,
-  "platform": "macOS arm64",
+  "nativeHostChecks": [
+    {
+      "name": "创建真实菜单栏图标",
+      "passed": true
+    },
+    {
+      "name": "固定后失焦仍保持展开",
+      "passed": true
+    },
+    {
+      "name": "取消固定后失焦自动收起",
+      "passed": true
+    },
+    {
+      "name": "菜单栏点击与失焦事件不互相抵消",
+      "passed": true
+    },
+    {
+      "name": "原生菜单随转换状态启用动作",
+      "passed": true
+    },
+    {
+      "name": "原生复制返回有效富文本，成功后自动收起（隔离剪贴板）",
+      "passed": true
+    },
+    {
+      "name": "固定面板复制后保持展开",
+      "passed": true
+    },
+    {
+      "name": "紧凑面板尺寸正确",
+      "passed": true
+    },
+    {
+      "name": "工作台切换保留同一份合并表格",
+      "passed": true
+    },
+    {
+      "name": "原生 DOCX 写出",
+      "passed": true
+    },
+    {
+      "name": "仅持久化偏好设置，不写入文档内容",
+      "passed": true
+    },
+    {
+      "name": "实际内容变化同步到原生菜单禁用状态",
+      "passed": true
+    },
+    {
+      "name": "本机图片按原始字节嵌入，不重新编码",
+      "passed": true
+    }
+  ],
+  "clipboardTesting": "isolated writes; system clipboard not replaced by test fixtures",
   "notarized": false,
   "wordWpsVisualAcceptance": false,
-  "docxContainerAndXMLVerified": true
+  "pagesManualObservations": [
+    "Baseline complex 5x5 table opened and retained multi-level row/column merges, embedded chart and leading zeros.",
+    "Baseline 16-column table remained visible in Pages; Pages auto-fitted it despite oversized XML width.",
+    "Pages reported a substituted/missing font; arbitrary font/layout fidelity is outside scope.",
+    "After-fix alignment document opened in Pages: center headings/labels and right-aligned amount 128.50 rendered correctly.",
+    "After-fix complex 5x5 document opened in Pages: merged headers, row merge, chart, line breaks and 000182 remained visible."
+  ],
+  "baseline": {
+    "checks": [
+      {
+        "name": "复杂表格：5处合并、20个单元格和内嵌图往返",
+        "passed": true,
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "name": "电子表格纯文本 TSV 识别",
+        "passed": false,
+        "actual": 0,
+        "expected": 1
+      },
+      {
+        "name": "rowspan=0 限于当前行组",
+        "passed": false,
+        "actual": [
+          3,
+          1
+        ],
+        "expected": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "跨度按浏览器整数语义归一化",
+        "passed": false,
+        "actual": 1.5,
+        "expected": 1
+      },
+      {
+        "name": "Markdown 代码单元格保留反斜杠",
+        "passed": false,
+        "actual": false,
+        "expected": true
+      },
+      {
+        "name": "Markdown 表格右对齐",
+        "passed": false,
+        "actual": "left",
+        "expected": "right"
+      },
+      {
+        "name": "普通列表文字修改被检测",
+        "passed": false,
+        "actual": false,
+        "expected": true
+      },
+      {
+        "name": "额外插入非数字段落被检测",
+        "passed": false,
+        "actual": false,
+        "expected": true
+      },
+      {
+        "name": "远程图片明确提示待补入",
+        "passed": true,
+        "actual": true,
+        "expected": true
+      },
+      {
+        "name": "大型本机图片补入后继续可检查",
+        "passed": false,
+        "error": "内容较长。原型目前最多处理 18 万字符，请分段导入。"
+      }
+    ],
+    "benchmark": {
+      "rows": 100,
+      "columns": 12,
+      "iterations": 5,
+      "milliseconds": [
+        10,
+        7,
+        7,
+        7,
+        7
+      ]
+    }
+  },
+  "after": {
+    "checks": [
+      {
+        "name": "复杂表格：5处合并、20个单元格和内嵌图往返",
+        "passed": true,
+        "actual": 0,
+        "expected": 0
+      },
+      {
+        "name": "电子表格纯文本 TSV 识别",
+        "passed": true,
+        "actual": 1,
+        "expected": 1
+      },
+      {
+        "name": "rowspan=0 限于当前行组",
+        "passed": true,
+        "actual": [
+          1,
+          0
+        ],
+        "expected": [
+          1,
+          0
+        ]
+      },
+      {
+        "name": "跨度按浏览器整数语义归一化",
+        "passed": true,
+        "actual": 1,
+        "expected": 1
+      },
+      {
+        "name": "Markdown 代码单元格保留反斜杠",
+        "passed": true,
+        "actual": true,
+        "expected": true
+      },
+      {
+        "name": "Markdown 表格右对齐",
+        "passed": true,
+        "actual": "right",
+        "expected": "right"
+      },
+      {
+        "name": "普通列表文字修改被检测",
+        "passed": true,
+        "actual": true,
+        "expected": true
+      },
+      {
+        "name": "额外插入非数字段落被检测",
+        "passed": true,
+        "actual": true,
+        "expected": true
+      },
+      {
+        "name": "远程图片明确提示待补入",
+        "passed": true,
+        "actual": true,
+        "expected": true
+      },
+      {
+        "name": "大型本机图片补入后继续可检查",
+        "passed": true,
+        "actual": 0,
+        "expected": 0
+      }
+    ],
+    "benchmark": {
+      "rows": 100,
+      "columns": 12,
+      "iterations": 5,
+      "milliseconds": [
+        11,
+        8,
+        9,
+        8,
+        10
+      ]
+    }
+  },
+  "docxGeometryAndAlignment": {
+    "before": {
+      "tableWidthWithinPage": false,
+      "tableWidth": 11520,
+      "pageTextWidth": 9906,
+      "cellParagraphAlignment": [],
+      "alignmentPreserved": false
+    },
+    "after": {
+      "tableWidthWithinPage": true,
+      "tableWidth": 9888,
+      "pageTextWidth": 9906,
+      "cellParagraphAlignment": [
+        "center",
+        "right",
+        "center",
+        "right"
+      ],
+      "alignmentPreserved": true
+    }
+  },
+  "packagedStartupAndExportSmoke": true,
+  "uiReview": "All seven captures had no material visual finding. Sole persistence fix scored resolved; disposition ship at that fix scope.",
+  "manualMenuMouseFlow": "incomplete: computer-use app catalog cached previous bundle identity; native host automated checks passed"
 }
