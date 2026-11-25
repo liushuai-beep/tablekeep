@@ -1,0 +1,84 @@
+{
+  "packaged": true,
+  "checks": [
+    {
+      "name": "启动为空状态，未自动读取剪贴板",
+      "passed": true
+    },
+    {
+      "name": "真实原生菜单栏图标已创建",
+      "passed": true
+    },
+    {
+      "name": "菜单栏点击展开与收起",
+      "passed": true
+    },
+    {
+      "name": "小面板复杂合并表格转换与检查",
+      "passed": true
+    },
+    {
+      "name": "小面板无页面横向或纵向溢出",
+      "passed": true
+    },
+    {
+      "name": "展开详细工作台保留同一份内容",
+      "passed": true
+    },
+    {
+      "name": "真实金额编辑触发检查并阻止损失导出",
+      "passed": true
+    },
+    {
+      "name": "详细检查点击定位",
+      "passed": true
+    },
+    {
+      "name": "回到小面板保留损失状态",
+      "passed": true
+    },
+    {
+      "name": "小面板原生 DOCX 导出",
+      "passed": true
+    },
+    {
+      "name": "显式读取入口（隔离剪贴板测试，不修改系统剪贴板）",
+      "passed": true
+    },
+    {
+      "name": "全局快捷键回调打开面板并读取",
+      "passed": true
+    },
+    {
+      "name": "原生文件对话框失焦不误收起面板",
+      "passed": true
+    },
+    {
+      "name": "Escape 收起",
+      "passed": true
+    },
+    {
+      "name": "失焦收起",
+      "passed": true
+    },
+    {
+      "name": "关闭窗口后仍常驻菜单栏",
+      "passed": true
+    },
+    {
+      "name": "短屏高度适配",
+      "passed": true
+    },
+    {
+      "name": "无渲染异常",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "version": "0.2.0",
+  "coreChecks": 12,
+  "platform": "macOS arm64",
+  "notarized": false,
+  "wordWpsVisualAcceptance": false,
+  "docxContainerAndXMLVerified": true
+}
