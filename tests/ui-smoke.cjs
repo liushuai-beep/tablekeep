@@ -23,7 +23,7 @@ app.whenReady().then(async()=>{
   await js('document.querySelector("#quickPasteButton").click()');await new Promise(r=>setTimeout(r,30));assert.equal(await js('TableKeepUI.getState().audit.stats.tables'),1);assert.equal(await js('document.querySelector("#quickSourceLabel").textContent.startsWith("TSV")'),true);record('TSV 读取入口与来源状态');
   await js('document.querySelector("#copyButton").click()');await new Promise(r=>setTimeout(r,30));assert.ok(lastCopy.html.includes('<table'));assert.ok(lastCopy.text.includes('00128.50'));record('复制数据保留表格及前导零（隔离剪贴板）');
   await new Promise(r=>setTimeout(r,1700));win.setSize(460,500);await shot('short');assert.equal(await js('document.documentElement.scrollHeight<=innerHeight+1'),true);record('短面板布局');
-  win.setSize(460,600);await js('TableKeepUI.applyInput("", "html")');await shot('error');record('错误状态仍可恢复输入');
+  win.setSize(460,600);await js('const transfer=new DataTransfer();transfer.items.add(new File(["binary fixture"],"unsupported.docx"));document.querySelector(".result-scroll").dispatchEvent(new DragEvent("drop",{dataTransfer:transfer,bubbles:true}));');assert.ok(await js('document.querySelector("#toast").textContent.includes("不支持此文件类型")'));assert.equal(await js('TableKeepUI.getState().audit.stats.tables'),1);await js('TableKeepUI.applyInput("", "html")');await shot('error');record('错误状态仍可恢复输入');
   const metrics=await js('({width:innerWidth,height:innerHeight})');fs.writeFileSync(path.join(review,'ui-results.json'),JSON.stringify({checks,metrics,hostState},null,2));console.log(JSON.stringify({checks},null,2));app.exit(0);
  }catch(e){console.error(e);app.exit(1);}
 });

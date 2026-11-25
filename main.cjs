@@ -81,6 +81,7 @@ async function importDocument(){
  const result=await nativeDialog(()=>dialog.showOpenDialog(window,{title:'导入表格或文档片段',properties:['openFile'],filters:[{name:'HTML、Markdown 或文本',extensions:['html','htm','md','markdown','txt','tsv']}]}));
  if(result.canceled)return null;
  const filename=result.filePaths[0],stat=await fs.stat(filename);
+ if(!/\.(html?|md|markdown|txt|tsv)$/i.test(filename))throw new Error('请导入 HTML、Markdown、TXT 或 TSV；DOCX 目前只支持导出。');
  if(stat.size>25000000)throw new Error('文件超过 25 MB，请先拆分内容。');
  return {name:path.basename(filename),content:await fs.readFile(filename,'utf8'),format:/\.html?$/i.test(filename)?'html':/\.(md|markdown)$/i.test(filename)?'markdown':'auto'};
 }

@@ -123,7 +123,7 @@
   }catch(err){toast(err.message,true);}
  }
  async function readFile(file){
-  if(!file)return;if(file.size>25000000){toast('文件超过 25 MB，请拆分内容。',true);return;}
+  if(!file)return;if(!/\.(html?|md|markdown|txt|tsv)$/i.test(file.name)){toast('不支持此文件类型。请使用 HTML、Markdown、TXT 或 TSV；DOCX 目前只支持导出。',true);return;}if(file.size>25000000){toast('文件超过 25 MB，请拆分内容。',true);return;}
   applyInput(await file.text(),/\.html?$/i.test(file.name)?'html':/\.(md|markdown)$/i.test(file.name)?'markdown':'auto');toast('已导入 '+file.name);
  }
  async function imageFile(file){
