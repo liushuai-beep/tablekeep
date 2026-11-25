@@ -14,6 +14,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run package:mac
+      - run: node tests/packaged-smoke.cjs
       - name: Archive app with macOS file modes and symlinks
         run: |
           mkdir -p dist
