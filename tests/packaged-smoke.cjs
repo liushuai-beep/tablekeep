@@ -32,16 +32,30 @@ const assert = require('node:assert/strict');
     assert.ok(target, 'Packaged window must start');
     socket = new WebSocket(target.webSocketDebuggerUrl);
     await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
-    const result = await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('Packaged conversion timed out')), 20000);
-      socket.addEventListener('message', event => {
+    let nextId = 0;
+    const evaluate = expression => new Promise((resolve, reject) => {
+      const id = ++nextId;
+      const finish = (error, value) => { clearTimeout(timer); socket.removeEventListener('message', onMessage); if (error) reject(error); else resolve(value); };
+      const timer = setTimeout(() => finish(new Error('Packaged conversion timed out')), 20000);
+      const onMessage = event => {
         const message = JSON.parse(event.data);
-        if (message.id !== 1) return;
-        clearTimeout(timer);
-        if (message.error || message.result.exceptionDetails) reject(new Error(JSON.stringify(message)));
-        else resolve(message.result.result.value);
-      });
-      socket.send(JSON.stringify({ id: 1, method: 'Runtime.evaluate', params: { awaitPromise: true, returnByValue: true, expression: `(async()=>{
+        if (message.id !== id) return;
+        if (message.error || message.result.exceptionDetails) finish(new Error(JSON.stringify(message)));
+        else finish(null, message.result.result.value);
+      };
+      socket.addEventListener('message', onMessage);
+      socket.send(JSON.stringify({ id, method: 'Runtime.evaluate', params: { awaitPromise: true, returnByValue: true, expression } }));
+    });
+    // The URL can already be index.html while Chromium is replacing its startup
+    // execution context. Retry only the read-only readiness probe, never the work.
+    const readyDeadline = Date.now() + 20000;
+    while (true) {
+      try { if (await evaluate('document.readyState === "complete" && !!globalThis.TableKeepUI')) break; }
+      catch (error) { if (!/Execution context was destroyed|Cannot find context/.test(error.message)) throw error; }
+      if (Date.now() > readyDeadline) throw new Error('Packaged renderer did not finish loading');
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    const result = await evaluate(`(async()=>{
         while(!window.TableKeepUI)await new Promise(resolve=>setTimeout(resolve,50));
         const waitForView=async predicate=>{const deadline=Date.now()+5000;while(!predicate()){if(Date.now()>deadline)throw new Error('View did not settle');await new Promise(resolve=>setTimeout(resolve,20));}};
         const empty=TableKeepUI.getState().source===null;
@@ -56,8 +70,7 @@ const assert = require('node:assert/strict');
         const binary=new Uint8Array(await TableKeepDOCX.make(TableKeepUI.getState().actual).arrayBuffer());
         await tablekeepDesktop.saveFile({format:'docx',data:Array.from(binary)});
         return {empty,expanded,compact,loss:audit.loss,merges:audit.stats.merges};
-      })()` } }));
-    });
+      })()`);
     assert.deepEqual(result, { empty: true, expanded: true, compact: true, loss: 0, merges: 5 });
     assert.ok((await fs.stat(path.join(profile, 'exports/TableKeep-result.docx'))).size > 1000);
     console.log('Packaged app passed startup, empty state, shared-view conversion, merge inspection, and native DOCX export.');
