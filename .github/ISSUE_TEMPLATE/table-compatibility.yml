@@ -1,0 +1,40 @@
+name: Table compatibility / 表格兼容性反馈
+description: Report a redacted table, its source and the actual destination result.
+title: "[Table] "
+body:
+  - type: markdown
+    attributes:
+      value: "Please remove personal, financial and confidential information before attaching any sample. 请先脱敏；不要上传真实个人或机密数据。"
+  - type: input
+    id: environment
+    attributes:
+      label: App / macOS version
+      placeholder: TableKeep 0.3.1, macOS …
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source / 来源
+      description: Browser/app name, version, HTML / Markdown / TSV, and a public sample URL if applicable.
+    validations:
+      required: true
+  - type: input
+    id: destination
+    attributes:
+      label: Destination / 目标软件
+      placeholder: Word / WPS / Pages / other, version; rich-text paste or DOCX open
+    validations:
+      required: true
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Expected and actual / 预期与实际
+      description: Compare direct paste and TableKeep. Which merge, image, line break, amount, or identifier changed? Attach redacted screenshots or minimal HTML if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: inspection
+    attributes:
+      label: Inspection / 检查结果
+      description: Did TableKeep report a change or limitation? Attach a redacted JSON report if helpful.

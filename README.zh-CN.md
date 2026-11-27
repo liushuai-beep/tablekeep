@@ -6,7 +6,11 @@
 
 [下载 Apple Silicon Mac 版本](https://github.com/liushuai-beep/tablekeep/releases/latest) · [English](README.md)
 
-![菜单栏小面板](docs/menubar.png)
+[37 秒实测对比演示](https://github.com/liushuai-beep/tablekeep/releases/download/v0.3.1/TableKeep-demo-zh-CN.mp4) · [对比结果与复现方法](DEMO.zh-CN.md)
+
+![真实界面截图剪辑：粘贴对比、金额变化检查与恢复](docs/demo/comparison.gif)
+
+同一份合成表格经过系统剪贴板粘贴进 Chromium 编辑区：默认富文本粘贴和 TableKeep 都保留了本例支持的结构，匹配样式粘贴丢失了表格与图片结构。TableKeep 还检测出了故意修改的金额，并阻止复制，直到恢复。这是实际界面截图剪辑，不是 Word/WPS 粘贴实测。
 
 ## 已实现
 
@@ -44,7 +48,7 @@
 
 ## 本次实测
 
-见 [实验记录](EXPERIMENTS.zh-CN.md)：记录旧版发现的问题和修复结果、25 项核心回归、11 项隔离界面检查、13 项原生窗口检查，以及 Pages 实际打开文件后的观察。Word/WPS 最终渲染仍未验证。偏好文件只存固定面板、复制后收起和快捷键设置，不保存文档内容。
+见 [实验记录](EXPERIMENTS.zh-CN.md) 和 [新对比实验](DEMO.zh-CN.md)。0.3.1 通过了 26 项核心回归、11 项隔离界面检查、13 项原生窗口检查；另有系统剪贴板粘贴对比与之前 Pages 实际打开文件后的观察。Word/WPS 最终渲染仍未验证。偏好文件只存固定面板、复制后收起和快捷键设置，不保存文档内容。
 
 ## 菜单栏操作
 
@@ -64,9 +68,11 @@ npm test
 npm run test:ui
 npm run test:native
 npm run package:mac
+# 可选：复现合成表格的系统剪贴板实验，会临时使用剪贴板
+npm run demo:capture
 ```
 
-首次运行 Electron 可能需要下载运行时。打包结果位于 `../TableKeep-build/`。`npm test` 在 Electron 中运行 25 项核心回归检查；CI 同时运行检查和打包。实现结构见 [英文 README](README.md#how-it-fits-together)。
+首次运行 Electron 可能需要下载运行时。打包结果位于 `../TableKeep-build/`。`npm test` 在 Electron 中运行 26 项核心回归检查；CI 同时运行检查和打包。实现结构见 [英文 README](README.md#how-it-fits-together)。
 
 欢迎贡献脱敏表格样例、Word/WPS 兼容性验证、原生公式支持、英文界面和其他桌面平台支持。详见 [贡献说明](CONTRIBUTING.md)。
 

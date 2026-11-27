@@ -6,7 +6,11 @@ A local macOS **menu bar app** for converting copied HTML, Markdown, and TSV int
 
 [Download for Apple Silicon Mac](https://github.com/liushuai-beep/tablekeep/releases/latest) · [中文说明](README.zh-CN.md) · [Report a bug](https://github.com/liushuai-beep/tablekeep/issues)
 
-![TableKeep menu bar popover showing a merged table and conversion checks](docs/menubar.png)
+[Watch the 37-second demo](https://github.com/liushuai-beep/tablekeep/releases/download/v0.3.1/TableKeep-demo-zh-CN.mp4) · [Reproducible comparison and scope](DEMO.zh-CN.md)
+
+![Actual interface captures: paste comparison and a deliberately edited amount detected by TableKeep](docs/demo/comparison.gif)
+
+The demo uses a synthetic table and a real macOS clipboard / Chromium editing-region experiment. Default rich-text paste also preserved this example; paste-and-match-style lost table/image structure. TableKeep additionally detected a deliberately edited amount and blocked copying until restored. These are actual interface screenshots edited into a video, not a Word/WPS paste benchmark.
 
 ## Why TableKeep?
 
@@ -47,7 +51,7 @@ The preview binary is locally ad-hoc signed, **not Developer ID signed or notari
 
 ## What we actually tested
 
-[Experiment notes](EXPERIMENTS.zh-CN.md) document the baseline failures and fixes, 25 core regressions, 11 isolated renderer checks, 13 native-host checks, and manual Pages observations. Word/WPS rendering is still unverified. Preferences store only pin/copy-dismiss/shortcut settings; document content is not persisted.
+[Experiment notes](EXPERIMENTS.zh-CN.md) document the baseline failures and fixes, isolated UI/native checks, and manual Pages observations. Version 0.3.1 passes 26 core, 11 renderer and 13 native-host checks; the demo adds a real clipboard comparison. Word/WPS rendering is still unverified. Preferences store only pin/copy-dismiss/shortcut settings; document content is not persisted.
 
 ## Develop
 
@@ -60,9 +64,11 @@ npm test
 npm run test:ui
 npm run test:native
 npm run package:mac
+# Optional: repeat the synthetic clipboard experiment (temporarily uses your clipboard)
+npm run demo:capture
 ```
 
-The first Electron run may download its runtime. Packaging writes `../TableKeep-build/TableKeep-darwin-arm64/TableKeep.app` and applies a local ad-hoc signature. `npm test` runs 25 regression checks inside Electron, including span preservation, deliberate degradation, actual number edits, input sanitization, and DOCX ZIP output. GitHub Actions runs the checks and packages the app; the published artifact does not include development dependencies.
+The first Electron run may download its runtime. Packaging writes `../TableKeep-build/TableKeep-darwin-arm64/TableKeep.app` and applies a local ad-hoc signature. `npm test` runs 26 regression checks inside Electron, including span preservation, deliberate degradation, actual number edits, input sanitization, DOCX ZIP output and table-to-text loss detection without crashing. GitHub Actions runs the checks and packages the app; the published artifact does not include development dependencies.
 
 ## How it fits together
 

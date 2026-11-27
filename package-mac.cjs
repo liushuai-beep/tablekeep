@@ -15,7 +15,7 @@ const path = require('node:path');
     appVersion: require('./package.json').version,
     overwrite: true,
     prune: true,
-    ignore: [/^\/(?:node_modules|tests|docs|\.github|\.git)(?:\/|$)/],
+    ignore: [/^\/(?:node_modules|tests|scripts|docs|\.github|\.git)(?:\/|$)/],
     extendInfo: { LSUIElement: true },
     osxSign: {
       identity: '-',

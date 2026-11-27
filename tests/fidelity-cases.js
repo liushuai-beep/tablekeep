@@ -5,6 +5,7 @@ globalThis.runTableKeepFidelityChecks=async function(){
    const parse=html=>K.parse(html,{format:'html'}), table=doc=>doc.blocks.find(b=>b.type==='table');
    const sample=TableKeepSamples.get()[0],complex=parse(sample.input),rt=K.parse(K.render(complex),{format:'html',trustIds:true});
    record('复杂表格：5处合并、20个单元格和内嵌图往返',K.inspect(complex,rt).loss,0);
+   run('表格变为纯文本时报告损失而非崩溃',()=>{const plain=parse('<h2>区域经营简报</h2><p>区域 负责人 经营指标</p><p>华东 林予 128.50</p>'),audit=K.inspect(complex,plain);record('表格变为纯文本时报告损失而非崩溃',audit.issues.some(i=>i.kind==='table')&&audit.loss>0,true);});
    run('电子表格纯文本 TSV 识别',()=>record('电子表格纯文本 TSV 识别',K.stats(K.parse('区域\t金额\t编号\n华东\t128.50\t000182\n华南\t-28.00\t000183')).tables,1));
    run('rowspan=0 限于当前行组',()=>{const t=table(parse('<table><thead><tr><th rowspan="0">表头</th><th>金额</th></tr></thead><tbody><tr><td>华东</td><td>128.50</td></tr><tr><td>华南</td><td>96.80</td></tr></tbody></table>'));record('rowspan=0 限于当前行组',[t.rows[0].cells[0].rowSpan,t.rows[1].cells[0].col],[1,0]);});
    run('跨度按浏览器整数语义归一化',()=>record('跨度按浏览器整数语义归一化',table(parse('<table><tr><td rowspan="1.5">A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table>')).rows[0].cells[0].rowSpan,1));

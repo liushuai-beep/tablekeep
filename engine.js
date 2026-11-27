@@ -291,7 +291,8 @@
       return JSON.stringify(out);
     };
     for(const [key,node] of expected) {
-      const out=actualNodes.get(key);
+      const candidate=actualNodes.get(key);
+      const out=candidate?.type===node.type?candidate:undefined;
       if(node.type==='table') {
         if(!out){structural++;add({severity:'loss',kind:'table',nodeId:key,title:'整张表格缺失',detail:'转换结果中未找到对应表格。'});}
       }

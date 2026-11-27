@@ -1,0 +1,576 @@
+{
+  "version": "0.3.1",
+  "createdAt": "2026-11-27T06:24:26.930Z",
+  "environment": {
+    "electron": "45.5.0",
+    "chromium": "156.0.8078.109",
+    "platform": "darwin"
+  },
+  "scope": "Real macOS clipboard / Chromium editable-region paste; actual TableKeep renderer. NOT Word/WPS/Pages paste or physical tray interaction. Edited amount is a deliberate, labeled test.",
+  "checks": [
+    {
+      "name": "direct-rich-text",
+      "stats": {
+        "tables": 1,
+        "cells": 20,
+        "merges": 5,
+        "images": 1,
+        "math": 0,
+        "codes": 0,
+        "chars": 191
+      },
+      "audit": {
+        "issues": [],
+        "loss": 0,
+        "warning": 0,
+        "checks": [
+          {
+            "label": "单元格与合并关系",
+            "ok": true,
+            "detail": "行列位置与跨度一致"
+          },
+          {
+            "label": "文字与换行",
+            "ok": true,
+            "detail": "单元格与正文文字一致"
+          },
+          {
+            "label": "强调与链接",
+            "ok": true,
+            "detail": "已核对支持的标记"
+          },
+          {
+            "label": "代码原文",
+            "ok": true,
+            "detail": "字符与空白保持一致"
+          },
+          {
+            "label": "图片",
+            "ok": true,
+            "detail": "嵌入图片已保留"
+          },
+          {
+            "label": "公式原文",
+            "ok": true,
+            "detail": "已核对原文；原生公式未转换"
+          }
+        ],
+        "stats": {
+          "tables": 1,
+          "cells": 20,
+          "merges": 5,
+          "images": 1,
+          "math": 0,
+          "codes": 0,
+          "chars": 191
+        },
+        "checked": 6
+      }
+    },
+    {
+      "name": "paste-and-match-style",
+      "stats": {
+        "tables": 0,
+        "cells": 0,
+        "merges": 0,
+        "images": 0,
+        "math": 0,
+        "codes": 0,
+        "chars": 201
+      },
+      "audit": {
+        "issues": [
+          {
+            "id": "issue0",
+            "severity": "loss",
+            "kind": "table",
+            "nodeId": "n3",
+            "title": "整张表格缺失",
+            "detail": "转换结果中未找到对应表格。"
+          },
+          {
+            "id": "issue1",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n4",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 1 行、第 1 列；跨 2 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue2",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n6",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 1 行、第 2 列；跨 2 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue3",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n8",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 1 行、第 3 列；跨 1 行、2 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue4",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n10",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 1 行、第 5 列；跨 2 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue5",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n13",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 2 行、第 3 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue6",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n15",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 2 行、第 4 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue7",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n18",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 3 行、第 1 列；跨 2 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue8",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n20",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 3 行、第 2 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue9",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n22",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 3 行、第 3 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue10",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n24",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 3 行、第 4 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue11",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n26",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 3 行、第 5 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue12",
+            "severity": "loss",
+            "kind": "image",
+            "nodeId": "n28",
+            "title": "图片在转换中丢失",
+            "detail": "缺少图片「华东季度增长趋势」。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue13",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n30",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 4 行、第 2 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue14",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n32",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 4 行、第 3 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue15",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n34",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 4 行、第 4 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue16",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n36",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 4 行、第 5 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue17",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n39",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 5 行、第 1 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue18",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n41",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 5 行、第 2 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue19",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n43",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 5 行、第 3 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue20",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n45",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 5 行、第 4 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue21",
+            "severity": "loss",
+            "kind": "merge",
+            "nodeId": "n47",
+            "tableId": "n3",
+            "title": "单元格缺失",
+            "detail": "原位置：第 5 行、第 5 列；跨 1 行、1 列。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue22",
+            "severity": "loss",
+            "kind": "added-content",
+            "nodeId": "n12",
+            "title": "结果中增加了内容",
+            "detail": "这一段内容在输入中不存在，请核对后恢复。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue23",
+            "severity": "loss",
+            "kind": "body-text",
+            "nodeId": "n50",
+            "title": "正文文字发生变化",
+            "detail": "段落或标题与输入原文不一致。",
+            "repair": "restore"
+          }
+        ],
+        "loss": 24,
+        "warning": 0,
+        "checks": [
+          {
+            "label": "单元格与合并关系",
+            "ok": false,
+            "detail": "21 处变化"
+          },
+          {
+            "label": "文字与换行",
+            "ok": false,
+            "detail": "2 处变化"
+          },
+          {
+            "label": "强调与链接",
+            "ok": true,
+            "detail": "已核对支持的标记"
+          },
+          {
+            "label": "代码原文",
+            "ok": true,
+            "detail": "字符与空白保持一致"
+          },
+          {
+            "label": "图片",
+            "ok": false,
+            "detail": "存在缺失图片"
+          },
+          {
+            "label": "公式原文",
+            "ok": true,
+            "detail": "已核对原文；原生公式未转换"
+          }
+        ],
+        "stats": {
+          "tables": 1,
+          "cells": 20,
+          "merges": 5,
+          "images": 1,
+          "math": 0,
+          "codes": 0,
+          "chars": 191
+        },
+        "checked": 3
+      }
+    },
+    {
+      "name": "tablekeep-import",
+      "stats": {
+        "tables": 1,
+        "cells": 20,
+        "merges": 5,
+        "images": 1,
+        "math": 0,
+        "codes": 0,
+        "chars": 191
+      },
+      "audit": {
+        "issues": [],
+        "loss": 0,
+        "warning": 0,
+        "checks": [
+          {
+            "label": "单元格与合并关系",
+            "ok": true,
+            "detail": "行列位置与跨度一致"
+          },
+          {
+            "label": "文字与换行",
+            "ok": true,
+            "detail": "单元格与正文文字一致"
+          },
+          {
+            "label": "强调与链接",
+            "ok": true,
+            "detail": "已核对支持的标记"
+          },
+          {
+            "label": "代码原文",
+            "ok": true,
+            "detail": "字符与空白保持一致"
+          },
+          {
+            "label": "图片",
+            "ok": true,
+            "detail": "嵌入图片已保留"
+          },
+          {
+            "label": "公式原文",
+            "ok": true,
+            "detail": "已核对原文；原生公式未转换"
+          }
+        ],
+        "stats": {
+          "tables": 1,
+          "cells": 20,
+          "merges": 5,
+          "images": 1,
+          "math": 0,
+          "codes": 0,
+          "chars": 191
+        },
+        "checked": 6
+      }
+    },
+    {
+      "name": "tablekeep-paste",
+      "stats": {
+        "tables": 1,
+        "cells": 20,
+        "merges": 5,
+        "images": 1,
+        "math": 0,
+        "codes": 0,
+        "chars": 191
+      },
+      "audit": {
+        "issues": [],
+        "loss": 0,
+        "warning": 0,
+        "checks": [
+          {
+            "label": "单元格与合并关系",
+            "ok": true,
+            "detail": "行列位置与跨度一致"
+          },
+          {
+            "label": "文字与换行",
+            "ok": true,
+            "detail": "单元格与正文文字一致"
+          },
+          {
+            "label": "强调与链接",
+            "ok": true,
+            "detail": "已核对支持的标记"
+          },
+          {
+            "label": "代码原文",
+            "ok": true,
+            "detail": "字符与空白保持一致"
+          },
+          {
+            "label": "图片",
+            "ok": true,
+            "detail": "嵌入图片已保留"
+          },
+          {
+            "label": "公式原文",
+            "ok": true,
+            "detail": "已核对原文；原生公式未转换"
+          }
+        ],
+        "stats": {
+          "tables": 1,
+          "cells": 20,
+          "merges": 5,
+          "images": 1,
+          "math": 0,
+          "codes": 0,
+          "chars": 191
+        },
+        "checked": 6
+      }
+    },
+    {
+      "name": "deliberate-amount-edit",
+      "from": "128.50",
+      "to": "999.99",
+      "audit": {
+        "issues": [
+          {
+            "id": "issue0",
+            "severity": "loss",
+            "kind": "text",
+            "nodeId": "n22",
+            "tableId": "n3",
+            "title": "单元格文字或换行改变",
+            "detail": "原文和结果不一致。请检查换行、数字或单元格中的代码。",
+            "repair": "restore"
+          },
+          {
+            "id": "issue1",
+            "severity": "loss",
+            "kind": "numbers",
+            "nodeId": "numbers",
+            "title": "数字、金额或百分比序列改变",
+            "detail": "请逐项核对数据。检测序列变化不等于已判断数值的业务含义。",
+            "repair": "restore"
+          }
+        ],
+        "loss": 2,
+        "warning": 0,
+        "checks": [
+          {
+            "label": "单元格与合并关系",
+            "ok": true,
+            "detail": "行列位置与跨度一致"
+          },
+          {
+            "label": "文字与换行",
+            "ok": false,
+            "detail": "1 处变化"
+          },
+          {
+            "label": "强调与链接",
+            "ok": true,
+            "detail": "已核对支持的标记"
+          },
+          {
+            "label": "代码原文",
+            "ok": true,
+            "detail": "字符与空白保持一致"
+          },
+          {
+            "label": "图片",
+            "ok": true,
+            "detail": "嵌入图片已保留"
+          },
+          {
+            "label": "公式原文",
+            "ok": true,
+            "detail": "已核对原文；原生公式未转换"
+          }
+        ],
+        "stats": {
+          "tables": 1,
+          "cells": 20,
+          "merges": 5,
+          "images": 1,
+          "math": 0,
+          "codes": 0,
+          "chars": 191
+        },
+        "checked": 5
+      },
+      "copyDisabled": true,
+      "exportDisabled": true,
+      "copyHandlerWasBlocked": true
+    },
+    {
+      "name": "restore",
+      "loss": 0,
+      "copyEnabled": true
+    }
+  ],
+  "source": {
+    "tables": 1,
+    "cells": 20,
+    "merges": 5,
+    "images": 1,
+    "math": 0,
+    "codes": 0,
+    "chars": 191
+  },
+  "conclusion": "Default rich-text paste also preserved the supported table structure in Chromium. Paste-and-match-style lost table/image structure. TableKeep imported and copied the table and detected a deliberately edited amount. This does not establish that direct paste is generally broken or that Word/WPS final rendering was tested.",
+  "success": true,
+  "clipboardRestored": true
+}

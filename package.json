@@ -1,6 +1,6 @@
 {
   "name": "tablekeep",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "description": "A local-first macOS menu bar app for faithful tables and conversion-loss inspection.",
   "main": "main.cjs",
@@ -9,7 +9,9 @@
     "package:mac": "node package-mac.cjs",
     "test": "electron tests/core-smoke.cjs",
     "test:ui": "electron tests/ui-smoke.cjs",
-    "test:native": "electron tests/native-host.cjs"
+    "test:native": "electron tests/native-host.cjs",
+    "demo:capture": "electron scripts/demo-capture.cjs",
+    "demo:render": "electron scripts/demo-render.cjs"
   },
   "devDependencies": {
     "@electron/packager": "^20.3.0",
